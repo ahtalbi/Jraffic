@@ -19,7 +19,27 @@ public class Main extends Application {
 
         background.fitWidthProperty().bind(scene.widthProperty());
         background.fitHeightProperty().bind(scene.heightProperty());
-        
+
+        scene.setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case UP:
+                    System.out.println("UP pressed");
+                    break;
+                case DOWN:
+                    System.out.println("DOWN pressed");
+                    break;
+                case LEFT:
+                    System.out.println("LEFT pressed");
+                    break;
+                case RIGHT:
+                    System.out.println("RIGHT pressed");
+                    break;
+                case R:
+                    System.out.println("R pressed");
+                    break;
+            }
+        });
+
         stage.setResizable(false);
         stage.setScene(scene);
         stage.show();
