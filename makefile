@@ -1,7 +1,7 @@
 JAVA_FX_VERSION := 21.0.6
 JAVA_FX_URL := https://download2.gluonhq.com/openjfx/$(JAVA_FX_VERSION)/openjfx-$(JAVA_FX_VERSION)_linux-x64_bin-sdk.zip
 LIB_DIR := lib
-SOURCE := Main.java
+SOURCE := src/Main.java
 
 .PHONY: all build run
 

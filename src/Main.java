@@ -1,8 +1,11 @@
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -23,17 +26,36 @@ public class Main extends Application {
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
                 case UP:
-                    System.out.println("UP pressed");
+                    Rectangle car = new Rectangle(40, 40);
+                    car.setFill(Color.RED);
+
+                    car.setX(340);
+                    car.setY(650);
+
+                    pane.getChildren().add(car);
+
+                    AnimationTimer timer = new AnimationTimer() {
+                        @Override
+                        public void handle(long now) {
+                            car.setY(car.getY() - 1);
+                        }
+                    };
+
+                    timer.start();
                     break;
+
                 case DOWN:
                     System.out.println("DOWN pressed");
                     break;
+
                 case LEFT:
                     System.out.println("LEFT pressed");
                     break;
+
                 case RIGHT:
                     System.out.println("RIGHT pressed");
                     break;
+
                 case R:
                     System.out.println("R pressed");
                     break;
