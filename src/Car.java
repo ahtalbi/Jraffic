@@ -91,7 +91,38 @@ public class Car {
         };
     }
 
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public boolean hasTurned() {
+        return hasTurned;
+    }
+
+    public double getX() {
+        return rectangle.getX();
+    }
+
+    public double getY() {
+        return rectangle.getY();
+    }
+
+    public int getCarSize() {
+        return carSize;
+    }
+
+    // front position of the car based on its direction
+    public double getFront() {
+        return switch (direction) {
+            case UP -> rectangle.getY();
+            case DOWN -> rectangle.getY() + carSize;
+            case LEFT -> rectangle.getX();
+            case RIGHT -> rectangle.getX() + carSize;
+        };
+    }
+
     public boolean isOffScreen(int screenSize) {
-        return rectangle.getX() > screenSize || rectangle.getX() + carSize < 0 || rectangle.getY() > screenSize || rectangle.getY() + carSize < 0;
+        return rectangle.getX() > screenSize || rectangle.getX() + carSize < 0 || rectangle.getY() > screenSize
+                || rectangle.getY() + carSize < 0;
     }
 }
