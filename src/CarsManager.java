@@ -32,16 +32,16 @@ public class CarsManager {
 
         switch (direction) {
             case UP:
-                routes.get(Direction.UP).add(new Car(canvas, color, direction, 100, 100, screenSize));
+                routes.get(Direction.UP).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3 , screenSize));
                 break;
             case DOWN:
-                routes.get(Direction.DOWN).add(new Car(canvas, color, direction, 200, 100, screenSize));
+                routes.get(Direction.DOWN).add(new Car(canvas, color, direction, screenSize / 2 - carSize / 3 - carSize, 0 - carSize));
                 break;
             case LEFT:
-                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, 300, 100, screenSize));
+                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize + carSize , screenSize / 2 - carSize / 2 - carSize));
                 break;
             default:
-                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 400, 100, screenSize));
+                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize , screenSize / 2 + carSize / 3));
                 break;
         }
     }

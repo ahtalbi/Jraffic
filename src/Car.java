@@ -3,7 +3,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Car {
-    private final int screenSize;
     private final int carSize = 40;
     private final double speed = 100;
     private final Rectangle rectangle;
@@ -11,9 +10,8 @@ public class Car {
     private final Pane canvas;
     
     // Constructors
-    public Car(Pane canvas, Color color, Direction direction, int x, int y, int screenSize) {
+    public Car(Pane canvas, Color color, Direction direction, int x, int y) {
         this.canvas = canvas;
-        this.screenSize = screenSize;
         this.direction = direction;
         
         rectangle = new Rectangle(carSize, carSize);
