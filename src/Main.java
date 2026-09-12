@@ -24,11 +24,11 @@ public class Main extends Application {
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case UP -> carsManager.addCar(Direction.UP);
-                case DOWN -> carsManager.addCar(Direction.DOWN);
-                case LEFT -> carsManager.addCar(Direction.LEFT);
-                case RIGHT -> carsManager.addCar(Direction.RIGHT);
-                case R -> carsManager.addRandomCar();
+                case UP -> carsManager.setCar(Direction.UP);
+                case DOWN -> carsManager.setCar(Direction.DOWN);
+                case LEFT -> carsManager.setCar(Direction.LEFT);
+                case RIGHT -> carsManager.setCar(Direction.RIGHT);
+                case R -> carsManager.setRandomCar();
                 case ESCAPE -> Platform.exit();
             }
         });
