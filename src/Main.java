@@ -4,8 +4,6 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
 public class Main extends Application {
@@ -23,44 +21,33 @@ public class Main extends Application {
         background.fitWidthProperty().bind(scene.widthProperty());
         background.fitHeightProperty().bind(scene.heightProperty());
 
+        CarsManager carsManager = new CarsManager(pane, size);
+
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case UP:
-                    Rectangle car = new Rectangle(40, 40);
-                    car.setFill(Color.RED);
-
-                    car.setX(340);
-                    car.setY(650);
-
-                    pane.getChildren().add(car);
-
-                    AnimationTimer timer = new AnimationTimer() {
-                        @Override
-                        public void handle(long now) {
-                            car.setY(car.getY() - 1);
-                        }
-                    };
-
-                    timer.start();
-                    break;
-
-                case DOWN:
-                    System.out.println("DOWN pressed");
-                    break;
-
-                case LEFT:
-                    System.out.println("LEFT pressed");
-                    break;
-
-                case RIGHT:
-                    System.out.println("RIGHT pressed");
-                    break;
-
-                case R:
-                    System.out.println("R pressed");
-                    break;
+                case UP -> carsManager.spawnCar(Direction.UP);
+                case DOWN -> carsManager.spawnCar(Direction.DOWN);
+                case LEFT -> carsManager.spawnCar(Direction.LEFT);
+                case RIGHT -> carsManager.spawnCar(Direction.RIGHT);
+                case R -> carsManager.spawnRandomCar();
             }
         });
+
+        AnimationTimer timer = new AnimationTimer() {
+            private long lastUpdate = 0;
+
+            @Override
+            public void handle(long now) {
+                if (lastUpdate == 0) {
+                    lastUpdate = now;
+                    return;
+                }
+                double elapsed = (now - lastUpdate) / 1_000_000_000.0;
+                carsManager.updateCars(elapsed);
+                lastUpdate = now;
+            }
+        };
+        timer.start();
 
         stage.setResizable(false);
         stage.setScene(scene);
