@@ -1,5 +1,6 @@
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -30,6 +31,7 @@ public class Main extends Application {
                 case LEFT -> carsManager.spawnCar(Direction.LEFT);
                 case RIGHT -> carsManager.spawnCar(Direction.RIGHT);
                 case R -> carsManager.spawnRandomCar();
+                case ESCAPE -> Platform.exit();
             }
         });
 
