@@ -3,25 +3,27 @@ import javafx.scene.shape.Rectangle;
 
 public class Car {
     private final int carSize = 40;
-    private final double speed = 100; // pixels per second
-    private final int screenSize;
-    private final int laneOffset;
+    private final double speed = 100;
 
     private final Rectangle rectangle;
     private final Turn turn;
+    private final Direction exitDirection;
+    private final double pivot;
+
     private Direction direction;
     private boolean hasTurned = false;
 
     public Car(Color color, Direction direction, Turn turn, double x, double y, int screenSize, int laneOffset) {
         this.direction = direction;
         this.turn = turn;
-        this.screenSize = screenSize;
-        this.laneOffset = laneOffset;
 
         rectangle = new Rectangle(carSize, carSize);
         rectangle.setFill(color);
         rectangle.setX(x);
         rectangle.setY(y);
+
+        this.exitDirection = rotate(direction, turn);
+        this.pivot = laneCoordinate(exitDirection, screenSize, laneOffset);
     }
 
     public Rectangle getRectangle() {
@@ -29,7 +31,7 @@ public class Car {
     }
 
     public void move(double elapsedSeconds) {
-        if (!hasTurned && reachedPivot()) {
+        if (turn != Turn.STRAIGHT && !hasTurned && reachedPivot()) {
             applyTurn();
         }
 
@@ -42,40 +44,28 @@ public class Car {
         }
     }
 
-    private double pivot() {
-        return screenSize / 2.0 - carSize / 2.0;
-    }
-
     private boolean reachedPivot() {
-        double p = pivot();
         return switch (direction) {
-            case UP -> rectangle.getY() <= p;
-            case DOWN -> rectangle.getY() >= p;
-            case LEFT -> rectangle.getX() <= p;
-            case RIGHT -> rectangle.getX() >= p;
+            case UP -> rectangle.getY() <= pivot;
+            case DOWN -> rectangle.getY() >= pivot;
+            case LEFT -> rectangle.getX() <= pivot;
+            case RIGHT -> rectangle.getX() >= pivot;
         };
     }
 
     private void applyTurn() {
         hasTurned = true;
-        if (turn == Turn.STRAIGHT) return; // blue: no heading change
 
-        Direction newDirection = rotate(direction, turn);
-        double p = pivot();
-
-        // Whichever axis was fixed before becomes the travel axis now (and vice versa).
         if (direction == Direction.UP || direction == Direction.DOWN) {
-            rectangle.setX(p);
-            rectangle.setY(laneCoordinate(newDirection));
+            rectangle.setY(pivot);
         } else {
-            rectangle.setY(p);
-            rectangle.setX(laneCoordinate(newDirection));
+            rectangle.setX(pivot);
         }
 
-        direction = newDirection;
+        direction = exitDirection;
     }
 
-    private double laneCoordinate(Direction d) {
+    private double laneCoordinate(Direction d, int screenSize, int laneOffset) {
         double center = screenSize / 2.0;
         return switch (d) {
             case UP, RIGHT -> center + laneOffset;
@@ -102,9 +92,6 @@ public class Car {
     }
 
     public boolean isOffScreen(int screenSize) {
-        return rectangle.getX() > screenSize
-                || rectangle.getX() + carSize < 0
-                || rectangle.getY() > screenSize
-                || rectangle.getY() + carSize < 0;
+        return rectangle.getX() > screenSize || rectangle.getX() + carSize < 0 || rectangle.getY() > screenSize || rectangle.getY() + carSize < 0;
     }
 }
