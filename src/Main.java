@@ -14,43 +14,41 @@ public class Main extends Application {
         Image image = new Image("file:assets/bg.jpg");
         ImageView background = new ImageView(image);
 
-        Pane pane = new Pane();
-        pane.getChildren().add(background);
+        Pane canvas = new Pane();
+        canvas.getChildren().add(background);
 
-        Scene scene = new Scene(pane, size, size);
-
+        Scene scene = new Scene(canvas, size, size);
         background.fitWidthProperty().bind(scene.widthProperty());
         background.fitHeightProperty().bind(scene.heightProperty());
-
-        CarsManager carsManager = new CarsManager(pane, size);
+        CarsManager carsManager = new CarsManager(canvas, size);
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
-                case UP -> carsManager.spawnCar(Direction.UP);
-                case DOWN -> carsManager.spawnCar(Direction.DOWN);
-                case LEFT -> carsManager.spawnCar(Direction.LEFT);
-                case RIGHT -> carsManager.spawnCar(Direction.RIGHT);
-                case R -> carsManager.spawnRandomCar();
+                case UP -> carsManager.addCar(Direction.UP);
+                case DOWN -> carsManager.addCar(Direction.DOWN);
+                case LEFT -> carsManager.addCar(Direction.LEFT);
+                case RIGHT -> carsManager.addCar(Direction.RIGHT);
+                case R -> carsManager.addRandomCar();
                 case ESCAPE -> Platform.exit();
             }
         });
 
         AnimationTimer timer = new AnimationTimer() {
-            private long lastUpdate = 0;
+            private long lUpdate = 0;
 
             @Override
             public void handle(long now) {
-                if (lastUpdate == 0) {
-                    lastUpdate = now;
+                if (lUpdate == 0) {
+                    lUpdate = now;
                     return;
                 }
-                double elapsed = (now - lastUpdate) / 1_000_000_000.0;
-                carsManager.updateCars(elapsed);
-                lastUpdate = now;
+
+                carsManager.updateCars((now - lUpdate) / 1_000_000_000.0);
+                lUpdate = now;
             }
         };
-        timer.start();
 
+        timer.start();
         stage.setResizable(false);
         stage.setScene(scene);
         stage.show();

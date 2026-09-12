@@ -4,6 +4,7 @@ Jraffic is a traffic simulation project that represents a road intersection with
 
 The goal of the project is to simulate traffic while avoiding collisions and dynamically managing traffic lights depending on the congestion of each lane.
 
+
 ## Features
 
 * Two intersecting roads with one lane in each direction.
@@ -44,6 +45,8 @@ capacity = floor(lane_length / (vehicle_length + safety_gap))
 ```
 
 When a lane becomes highly congested, the traffic light system can adapt its green time to reduce the queue and prevent overflow.
+
+
 
 ## How to Run
 
@@ -87,3 +90,8 @@ The project contains the main components needed for:
 ## Objective
 
 The main objective of Jraffic is to create a simple but realistic traffic simulation where vehicles can move safely through an intersection while the traffic light system adapts to traffic congestion.
+
+## notes 
+
+``HashMap``: key → hashCode() → bucket → find key     
+``EnumMap``: enum → ordinal/index → direct array access
