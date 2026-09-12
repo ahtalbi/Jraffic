@@ -10,6 +10,10 @@ public class CarsManager {
     private final int screenSize;
     private final int carSize = 40;
     private final int laneOffset = 20;
+    private final int safetyGap = 15;
+
+    private final int laneLength;
+    private final int laneCapacity;
 
     private final Pane pane;
     private final List<Car> cars = new ArrayList<>();
@@ -19,17 +23,133 @@ public class CarsManager {
 
     private final Route[] routes = {
         new Route(Color.RED, Turn.LEFT),
-        new Route(Color.YELLOW, Turn.LEFT),
         new Route(Color.GREEN, Turn.RIGHT),
         new Route(Color.BLUE, Turn.STRAIGHT)
     };
 
+    // intersection zone
+    private final double intersectionMin;
+    private final double intersectionMax;
+
+    // traffic lights: indexed by Direction.ordinal() (UP=0, DOWN=1, LEFT=2, RIGHT=3)
+    private final TrafficLight[] lights = new TrafficLight[4];
+    private final Direction[] rotation = { Direction.UP, Direction.RIGHT, Direction.DOWN, Direction.LEFT };
+    private int currentPhase = 0; // index in rotation
+    private boolean clearing = false;
+    private double phaseTimer = 0;
+    private final double baseGreenTime = 5.0;
+    private final double clearanceTime = 2.0;
+
     public CarsManager(Pane pane, int screenSize) {
         this.pane = pane;
         this.screenSize = screenSize;
+        this.laneLength = screenSize / 2;
+        this.laneCapacity = laneLength / (carSize + safetyGap);
+        this.intersectionMin = screenSize / 2.0 - laneOffset - carSize;
+        this.intersectionMax = screenSize / 2.0 + laneOffset + carSize;
+        initTrafficLights();
     }
 
+    private void initTrafficLights() {
+        int gap = 5;
+        int lightSize = 12;
+
+        // UP (from south): bottom-right corner of intersection
+        lights[Direction.UP.ordinal()] = new TrafficLight(
+                intersectionMax + gap, intersectionMax + gap, true);
+        // DOWN (from north): top-left corner
+        lights[Direction.DOWN.ordinal()] = new TrafficLight(
+                intersectionMin - lightSize - gap, intersectionMin - lightSize - gap, false);
+        // LEFT (from east): top-right corner
+        lights[Direction.LEFT.ordinal()] = new TrafficLight(
+                intersectionMax + gap, intersectionMin - lightSize - gap, false);
+        // RIGHT (from west): bottom-left corner
+        lights[Direction.RIGHT.ordinal()] = new TrafficLight(
+                intersectionMin - lightSize - gap, intersectionMax + gap, false);
+
+        for (TrafficLight light : lights) {
+            pane.getChildren().add(light.getRect());
+        }
+    }
+
+    // ── traffic light logic ──
+
+    private void updateTrafficLights(double elapsed) {
+        phaseTimer += elapsed;
+
+        if (clearing) {
+            if (phaseTimer >= clearanceTime && isIntersectionClear()) {
+                clearing = false;
+                phaseTimer = 0;
+                currentPhase = (currentPhase + 1) % rotation.length;
+                setSingleGreen(rotation[currentPhase]);
+            }
+        } else {
+            if (phaseTimer >= getGreenDuration()) {
+                clearing = true;
+                phaseTimer = 0;
+                setAllRed();
+            }
+        }
+    }
+
+    private void setAllRed() {
+        for (TrafficLight light : lights) {
+            light.setGreen(false);
+        }
+    }
+
+    private void setSingleGreen(Direction dir) {
+        setAllRed();
+        lights[dir.ordinal()].setGreen(true);
+    }
+
+    private boolean isIntersectionClear() {
+        for (Car car : cars) {
+            if (car.getX() + carSize > intersectionMin && car.getX() < intersectionMax
+                    && car.getY() + carSize > intersectionMin && car.getY() < intersectionMax) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private double getGreenDuration() {
+        Direction active = rotation[currentPhase];
+        int activeCount = countCarsInDirection(active);
+
+        // extend green if this direction is congested
+        if (activeCount > 3) return baseGreenTime + 3.0;
+        return baseGreenTime;
+    }
+
+    private int countCarsInDirection(Direction dir) {
+        int count = 0;
+        for (Car car : cars) {
+            if (car.getDirection() == dir && !car.hasTurned()) count++;
+        }
+        return count;
+    }
+
+    private boolean shouldStopAtLight(Car car) {
+        if (car.hasTurned()) return false;
+        if (lights[car.getDirection().ordinal()].isGreen()) return false;
+
+        // stop only near the stop line — cars far away keep driving
+        // hasCarAhead handles queuing behind the first car
+        return switch (car.getDirection()) {
+            case UP -> car.getY() >= intersectionMax && car.getY() < intersectionMax + safetyGap;
+            case DOWN -> car.getY() + carSize <= intersectionMin && car.getY() + carSize > intersectionMin - safetyGap;
+            case LEFT -> car.getX() >= intersectionMax && car.getX() < intersectionMax + safetyGap;
+            case RIGHT -> car.getX() + carSize <= intersectionMin && car.getX() + carSize > intersectionMin - safetyGap;
+        };
+    }
+
+    // ── spawn ──
+
     public void spawnCar(Direction direction) {
+        if (!canSpawn(direction)) return;
+
         Route route = routes[random.nextInt(routes.length)];
         double center = screenSize / 2.0;
         double x;
@@ -48,23 +168,82 @@ public class CarsManager {
         pane.getChildren().add(car.getRectangle());
     }
 
+    private boolean canSpawn(Direction direction) {
+        int count = 0;
+
+        for (Car car : cars) {
+            if (car.getDirection() != direction || car.hasTurned()) continue;
+            count++;
+
+            double dist = distanceToSpawn(car, direction);
+            if (dist < carSize + safetyGap) return false;
+        }
+
+        return count < laneCapacity;
+    }
+
+    private double distanceToSpawn(Car car, Direction dir) {
+        return switch (dir) {
+            case UP -> screenSize - car.getY() - carSize;
+            case DOWN -> car.getY() + carSize;
+            case LEFT -> screenSize - car.getX() - carSize;
+            case RIGHT -> car.getX() + carSize;
+        };
+    }
+
     public void spawnRandomCar() {
         Direction[] directions = Direction.values();
         Direction randomDirection = directions[random.nextInt(directions.length)];
         spawnCar(randomDirection);
     }
 
-    public void updateCars(double elapsedSeconds) {
-        Iterator<Car> iterator = cars.iterator();
+    // ── update ──
 
+    public void updateCars(double elapsedSeconds) {
+        updateTrafficLights(elapsedSeconds);
+
+        for (Car car : cars) {
+            if (shouldStopAtLight(car)) continue;
+            if (hasCarAhead(car)) continue;
+            car.move(elapsedSeconds);
+        }
+
+        Iterator<Car> iterator = cars.iterator();
         while (iterator.hasNext()) {
             Car car = iterator.next();
-            car.move(elapsedSeconds);
-
             if (car.isOffScreen(screenSize)) {
                 pane.getChildren().remove(car.getRectangle());
                 iterator.remove();
             }
         }
+    }
+
+    // ── safety distance ──
+
+    private boolean hasCarAhead(Car current) {
+        for (Car other : cars) {
+            if (other == current) continue;
+            if (isInSweptArea(current, other)) return true;
+        }
+        return false;
+    }
+
+    private boolean isInSweptArea(Car current, Car other) {
+        double lookAhead = carSize + safetyGap;
+
+        double sMinX = current.getX();
+        double sMaxX = current.getX() + carSize;
+        double sMinY = current.getY();
+        double sMaxY = current.getY() + carSize;
+
+        switch (current.getDirection()) {
+            case UP -> sMinY -= lookAhead;
+            case DOWN -> sMaxY += lookAhead;
+            case LEFT -> sMinX -= lookAhead;
+            case RIGHT -> sMaxX += lookAhead;
+        }
+
+        return sMinX < other.getX() + carSize && sMaxX > other.getX()
+                && sMinY < other.getY() + carSize && sMaxY > other.getY();
     }
 }
