@@ -9,6 +9,7 @@ public class CarsManager {
     private final Pane canvas;
     private final int screenSize;
     private final int carSize = 40;
+    private final int safetyGap = 35;
     private final Map<Direction, List<Car>> routes;
 
     // Constructor
@@ -27,11 +28,15 @@ public class CarsManager {
 
     // Setters
     public void setCar(Direction direction) {
+        if (!canSpawn(direction)) {
+            return;
+        }
+
         CarColor color = CarColor.random();
 
         switch (direction) {
             case UP:
-                routes.get(Direction.UP).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3 , screenSize, screenSize));
+                routes.get(Direction.UP).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3, screenSize, screenSize));
                 break;
             case DOWN:
                 routes.get(Direction.DOWN).add(new Car(canvas, color, direction, screenSize / 2 - carSize / 3 - carSize, 0 - carSize, screenSize));
@@ -40,9 +45,25 @@ public class CarsManager {
                 routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize, screenSize / 2 - carSize / 2 - carSize, screenSize));
                 break;
             default:
-                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize , screenSize / 2 + carSize / 3, screenSize));
+                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize, screenSize / 2 + carSize / 3, screenSize));
                 break;
         }
+    }
+
+    private boolean canSpawn(Direction direction) {
+        for (Car car : routes.get(direction)) {
+            double distance = switch (direction) {
+                case UP    -> screenSize - (car.getY() + carSize);
+                case DOWN  -> car.getY() - (-carSize);
+                case LEFT  -> screenSize - (car.getX() + carSize);
+                case RIGHT -> car.getX() - (-carSize);
+            };
+
+            if (distance < carSize + safetyGap) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void setRandomCar() {
@@ -52,7 +73,26 @@ public class CarsManager {
     }
 
     // Methods
-    
+
+    private boolean hasCarAhead(Car current, List<Car> sameLaneCars) {
+        for (Car other : sameLaneCars) {
+            if (other == current) {
+                continue;
+            }
+
+            double distance = switch (current.getDirection()) {
+                case UP    -> current.getY() - (other.getY() + carSize);
+                case DOWN  -> other.getY() - (current.getY() + carSize);
+                case LEFT  -> current.getX() - (other.getX() + carSize);
+                case RIGHT -> other.getX() - (current.getX() + carSize);
+            };
+
+            if (distance >= 0 && distance < safetyGap) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public void updateCars(double timeBetweenFrames) {
         for (List<Car> cars : routes.values()) {

@@ -28,6 +28,9 @@ public class Car {
     }
 
     // Getters
+    public double getX() { return rectangle.getX(); }
+    public double getY() { return rectangle.getY(); }
+    public Direction getDirection() { return direction; }
 
     // Setters
     public void move(double timeBetweenFrames) {
