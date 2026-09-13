@@ -37,7 +37,7 @@ public class CarsManager {
                 routes.get(Direction.DOWN).add(new Car(canvas, color, direction, screenSize / 2 - carSize / 3 - carSize, 0 - carSize, screenSize));
                 break;
             case LEFT:
-                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize + carSize , screenSize / 2 - carSize / 2 - carSize, screenSize));
+                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize, screenSize / 2 - carSize / 2 - carSize, screenSize));
                 break;
             default:
                 routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize , screenSize / 2 + carSize / 3, screenSize));
