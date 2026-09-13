@@ -1,0 +1,14 @@
+--module-path
+lib/javafx-sdk-21.0.6/lib
+--add-modules
+javafx.controls
+-d
+out
+src/Car.java
+src/CarColor.java
+src/CarsManager.java
+src/Direction.java
+src/Main.java
+src/RandomUtils.java
+src/TrafficLight.java
+src/Turn.java

@@ -1,5 +1,4 @@
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
@@ -27,37 +26,32 @@ public class CarsManager {
 
     // Setters
     public void setCar(Direction direction) {
-        CarColor carColor = CarColor.random();
-        Color color = toColor(carColor);
+        CarColor color = CarColor.random();
 
         switch (direction) {
             case UP:
-                routes.get(Direction.UP).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3 , screenSize));
+                routes.get(Direction.UP).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3 , screenSize, screenSize));
                 break;
             case DOWN:
-                routes.get(Direction.DOWN).add(new Car(canvas, color, direction, screenSize / 2 - carSize / 3 - carSize, 0 - carSize));
+                routes.get(Direction.DOWN).add(new Car(canvas, color, direction, screenSize / 2 - carSize / 3 - carSize, 0 - carSize, screenSize));
                 break;
             case LEFT:
-                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize + carSize , screenSize / 2 - carSize / 2 - carSize));
+                routes.get(Direction.LEFT).add(new Car(canvas, color, direction, screenSize + carSize , screenSize / 2 - carSize / 2 - carSize, screenSize));
                 break;
             default:
-                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize , screenSize / 2 + carSize / 3));
+                routes.get(Direction.RIGHT).add(new Car(canvas, color, direction, 0 - carSize , screenSize / 2 + carSize / 3, screenSize));
                 break;
         }
     }
 
     public void setRandomCar() {
-
+        Direction direction = Direction.random();
+        CarColor color = CarColor.random();
+        routes.get(direction).add(new Car(canvas, color, direction, screenSize / 2 + carSize / 3 , screenSize, screenSize));
     }
 
     // Methods
-    private Color toColor(CarColor carColor) {
-        return switch (carColor) {
-            case RED -> Color.RED;
-            case GREEN -> Color.GREEN;
-            case BLUE -> Color.BLUE;
-        };
-    }
+    
 
     public void updateCars(double timeBetweenFrames) {
         for (List<Car> cars : routes.values()) {
