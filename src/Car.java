@@ -50,7 +50,7 @@ public class Car {
 
         boolean atTurnPoint = switch (direction) {
             case UP -> (carColor == CarColor.RED) ? rectangle.getY() <= screenSize / 2.0 - carSize - carSize / 2.0 : rectangle.getY() <= screenSize / 2.0 + carSize / 3.0;
-            case DOWN -> (carColor == CarColor.RED) ? rectangle.getY() >= screenSize / 2.0 + carSize / 3.0 : rectangle.getY() >= screenSize / 2.0 - carSize - carSize / 3.0;
+            case DOWN -> (carColor == CarColor.RED) ? rectangle.getY() >= screenSize / 2.0 + carSize / 3.0 : rectangle.getY() >= screenSize / 2.0 - carSize - carSize / 2.0;
             case LEFT -> (carColor == CarColor.RED) ? rectangle.getX() <= screenSize / 2.0 - carSize / 3.0 - carSize : rectangle.getX() <= screenSize / 2.0 + carSize + carSize / 3.0 - carSize;
             case RIGHT -> (carColor == CarColor.RED) ? rectangle.getX() >= screenSize / 2.0 + carSize / 3.0 : rectangle.getX() >= screenSize / 2.0 - carSize - carSize / 3.0;
         };
@@ -85,5 +85,13 @@ public class Car {
             case GREEN -> Color.GREEN;
             case BLUE -> Color.BLUE;
         };
+    }
+
+    public void removeFromCanvas() {
+        canvas.getChildren().remove(rectangle);
+    }
+
+    public boolean hasExitedScreen() {
+        return rectangle.getX() + carSize < 0 || rectangle.getX() > screenSize || rectangle.getY() + carSize < 0 || rectangle.getY() > screenSize;
     }
 }

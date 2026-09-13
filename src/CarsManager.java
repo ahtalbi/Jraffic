@@ -3,6 +3,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Iterator;
 
 public class CarsManager {
     private final Pane canvas;
@@ -55,8 +56,16 @@ public class CarsManager {
 
     public void updateCars(double timeBetweenFrames) {
         for (List<Car> cars : routes.values()) {
-            for (Car car : cars) {
+            Iterator<Car> iterator = cars.iterator();
+
+            while (iterator.hasNext()) {
+                Car car = iterator.next();
                 car.move(timeBetweenFrames);
+
+                if (car.hasExitedScreen()) {
+                    car.removeFromCanvas();
+                    iterator.remove();
+                }
             }
         }
     }
