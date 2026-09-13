@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
     private final int size = 700;
 
+    @Override
     public void start(Stage stage) {
         Image image = new Image("file:assets/bg.jpg");
         ImageView background = new ImageView(image);
@@ -20,7 +21,9 @@ public class Main extends Application {
         Scene scene = new Scene(canvas, size, size);
         background.fitWidthProperty().bind(scene.widthProperty());
         background.fitHeightProperty().bind(scene.heightProperty());
+
         CarsManager carsManager = new CarsManager(canvas, size);
+        TrafficLightManager trafficLightManager = new TrafficLightManager(canvas);
 
         scene.setOnKeyPressed(event -> {
             switch (event.getCode()) {
@@ -43,7 +46,9 @@ public class Main extends Application {
                     return;
                 }
 
-                carsManager.updateCars((now - lUpdate) / 1_000_000_000.0);
+                double elapsedSeconds = (now - lUpdate) / 1_000_000_000.0;
+                trafficLightManager.update(elapsedSeconds, carsManager);
+                carsManager.updateCars(elapsedSeconds, trafficLightManager);
                 lUpdate = now;
             }
         };

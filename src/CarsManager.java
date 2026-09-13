@@ -57,13 +57,17 @@ public class CarsManager {
     // Methods
     private boolean canSpawn(Direction direction) {
         for (Car car : routes.get(direction)) {
+            if (car.hasTurned()) {
+                continue;
+            }
+
             double distance = switch (direction) {
                 case UP    -> screenSize - (car.getY() + carSize);
                 case DOWN  -> car.getY();
                 case LEFT  -> screenSize - (car.getX() + carSize);
                 case RIGHT -> car.getX();
             };
-    
+
             if (distance < carSize + safetyGap) {
                 return false;
             }
@@ -71,32 +75,18 @@ public class CarsManager {
         return true;
     }
 
-    private boolean hasCarAhead(Car current, List<Car> sameLaneCars) {
-        for (Car other : sameLaneCars) {
-            if (other == current) {
-                continue;
-            }
-
-            double distance = switch (current.getDirection()) {
-                case UP    -> current.getY() - (other.getY() + carSize);
-                case DOWN  -> other.getY() - (current.getY() + carSize);
-                case LEFT  -> current.getX() - (other.getX() + carSize);
-                case RIGHT -> other.getX() - (current.getX() + carSize);
-            };
-
-            if (distance >= 0 && distance < safetyGap) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void updateCars(double timeBetweenFrames) {
-        for (List<Car> cars : routes.values()) {
+    public void updateCars(double timeBetweenFrames, TrafficLightManager trafficLightManager) {
+        for (Map.Entry<Direction, List<Car>> entry : routes.entrySet()) {
+            Direction direction = entry.getKey();
+            List<Car> cars = entry.getValue();
             Iterator<Car> iterator = cars.iterator();
 
             while (iterator.hasNext()) {
                 Car car = iterator.next();
+                if (trafficLightManager != null && trafficLightManager.shouldStop(car, direction, timeBetweenFrames)) {
+                    continue;
+                }
+
                 if (hasSafeGap(car, cars, timeBetweenFrames)) {
                     car.move(timeBetweenFrames);
                 }
@@ -109,6 +99,10 @@ public class CarsManager {
         }
     }
 
+    public void updateCars(double timeBetweenFrames) {
+        updateCars(timeBetweenFrames, null);
+    }
+
     private boolean hasSafeGap(Car car, List<Car> cars, double timeBetweenFrames) {
         double distance = 100 * timeBetweenFrames;
 
@@ -118,9 +112,9 @@ public class CarsManager {
             }
 
             boolean tooClose = switch (car.getDirection()) {
-                case UP -> other.getY() < car.getY() && car.getY() - distance < other.getY() + carSize + safetyGap;
-                case DOWN -> other.getY() > car.getY() && car.getY() + distance + carSize > other.getY() - safetyGap;
-                case LEFT -> other.getX() < car.getX() && car.getX() - distance < other.getX() + carSize + safetyGap;
+                case UP    -> other.getY() < car.getY() && car.getY() - distance < other.getY() + carSize + safetyGap;
+                case DOWN  -> other.getY() > car.getY() && car.getY() + distance + carSize > other.getY() - safetyGap;
+                case LEFT  -> other.getX() < car.getX() && car.getX() - distance < other.getX() + carSize + safetyGap;
                 case RIGHT -> other.getX() > car.getX() && car.getX() + distance + carSize > other.getX() - safetyGap;
             };
 
@@ -129,6 +123,47 @@ public class CarsManager {
             }
         }
 
+        return true;
+    }
+
+    // =========================================================================
+    // Traffic Light Helpers
+    // =========================================================================
+
+    public Map<Direction, List<Car>> getRoutes() {
+        return routes;
+    }
+
+    public int countWaitingCars(Direction direction) {
+        int count = 0;
+        for (Car car : routes.get(direction)) {
+            if (car.hasTurned()) {
+                continue;
+            }
+
+            boolean isApproaching = switch (direction) {
+                case UP    -> car.getY() >= 405.0;
+                case DOWN  -> car.getY() <= 255.0;
+                case LEFT  -> car.getX() >= 405.0;
+                case RIGHT -> car.getX() <= 255.0;
+            };
+
+            if (isApproaching) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public boolean isIntersectionClear() {
+        for (List<Car> list : routes.values()) {
+            for (Car car : list) {
+                if (car.getX() < 405.0 && car.getX() + carSize > 295.0
+                        && car.getY() < 405.0 && car.getY() + carSize > 295.0) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 }

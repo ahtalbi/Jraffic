@@ -31,8 +31,12 @@ public class Car {
     public double getX() { return rectangle.getX(); }
     public double getY() { return rectangle.getY(); }
     public Direction getDirection() { return direction; }
+    public boolean hasTurned() { return hasTurned; }
 
     // Setters
+    public void setX(double x) { rectangle.setX(x); }
+    public void setY(double y) { rectangle.setY(y); }
+
     public void move(double timeBetweenFrames) {
         checkTurn();
 
