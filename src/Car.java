@@ -3,8 +3,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 public class Car {
+    public static final int CAR_SIZE = 35;
     private final int screenSize;
-    private final int carSize = 40;
+    private final int carSize = CAR_SIZE;
     private final double speed = 100;
     private final Rectangle rectangle;
     private final CarColor carColor;
@@ -32,6 +33,7 @@ public class Car {
     public double getY() { return rectangle.getY(); }
     public Direction getDirection() { return direction; }
     public boolean hasTurned() { return hasTurned; }
+    public int getCarSize() { return carSize; }
 
     // Setters
     public void setX(double x) { rectangle.setX(x); }

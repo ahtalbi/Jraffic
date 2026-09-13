@@ -8,8 +8,8 @@ import java.util.Iterator;
 public class CarsManager {
     private final Pane canvas;
     private final int screenSize;
-    private final int carSize = 40;
-    private final int safetyGap = 20;
+    private final int carSize = Car.CAR_SIZE;
+    private final int safetyGap = 35;
     private final Map<Direction, List<Car>> routes;
 
     // Constructor
@@ -56,19 +56,23 @@ public class CarsManager {
 
     // Methods
     private boolean canSpawn(Direction direction) {
+        if (countWaitingCars(direction) >= getLaneCapacity()) {
+            return false;
+        }
+
         for (Car car : routes.get(direction)) {
             if (car.hasTurned()) {
                 continue;
             }
 
             double distance = switch (direction) {
-                case UP    -> screenSize - (car.getY() + carSize);
+                case UP    -> screenSize - (car.getY() + car.getCarSize());
                 case DOWN  -> car.getY();
-                case LEFT  -> screenSize - (car.getX() + carSize);
+                case LEFT  -> screenSize - (car.getX() + car.getCarSize());
                 case RIGHT -> car.getX();
             };
 
-            if (distance < carSize + safetyGap) {
+            if (distance < car.getCarSize() + safetyGap) {
                 return false;
             }
         }
@@ -83,6 +87,7 @@ public class CarsManager {
 
             while (iterator.hasNext()) {
                 Car car = iterator.next();
+
                 if (trafficLightManager != null && trafficLightManager.shouldStop(car, direction, timeBetweenFrames)) {
                     continue;
                 }
@@ -105,6 +110,7 @@ public class CarsManager {
 
     private boolean hasSafeGap(Car car, List<Car> cars, double timeBetweenFrames) {
         double distance = 100 * timeBetweenFrames;
+        double currentCarSize = car.getCarSize();
 
         for (Car other : cars) {
             if (car == other || car.getDirection() != other.getDirection()) {
@@ -112,10 +118,10 @@ public class CarsManager {
             }
 
             boolean tooClose = switch (car.getDirection()) {
-                case UP    -> other.getY() < car.getY() && car.getY() - distance < other.getY() + carSize + safetyGap;
-                case DOWN  -> other.getY() > car.getY() && car.getY() + distance + carSize > other.getY() - safetyGap;
-                case LEFT  -> other.getX() < car.getX() && car.getX() - distance < other.getX() + carSize + safetyGap;
-                case RIGHT -> other.getX() > car.getX() && car.getX() + distance + carSize > other.getX() - safetyGap;
+                case UP    -> other.getY() < car.getY() && car.getY() - distance < other.getY() + other.getCarSize() + safetyGap;
+                case DOWN  -> other.getY() > car.getY() && car.getY() + distance + currentCarSize > other.getY() - safetyGap;
+                case LEFT  -> other.getX() < car.getX() && car.getX() - distance < other.getX() + other.getCarSize() + safetyGap;
+                case RIGHT -> other.getX() > car.getX() && car.getX() + distance + currentCarSize > other.getX() - safetyGap;
             };
 
             if (tooClose) {
@@ -127,28 +133,34 @@ public class CarsManager {
     }
 
     // =========================================================================
-    // Traffic Light Helpers
+    // Traffic Light Helpers 
     // =========================================================================
 
     public Map<Direction, List<Car>> getRoutes() {
         return routes;
     }
 
+    public int getLaneCapacity() {
+        return (int) Math.floor(295.0 / (carSize + safetyGap));
+    }
+
+    public boolean isApproaching(Car car, Direction direction) {
+        if (car.hasTurned()) {
+            return false;
+        }
+
+        return switch (direction) {
+            case UP    -> car.getY() >= 405.0;
+            case DOWN  -> car.getY() + car.getCarSize() <= 295.0;
+            case LEFT  -> car.getX() >= 405.0;
+            case RIGHT -> car.getX() + car.getCarSize() <= 295.0;
+        };
+    }
+
     public int countWaitingCars(Direction direction) {
         int count = 0;
         for (Car car : routes.get(direction)) {
-            if (car.hasTurned()) {
-                continue;
-            }
-
-            boolean isApproaching = switch (direction) {
-                case UP    -> car.getY() >= 405.0;
-                case DOWN  -> car.getY() <= 255.0;
-                case LEFT  -> car.getX() >= 405.0;
-                case RIGHT -> car.getX() <= 255.0;
-            };
-
-            if (isApproaching) {
+            if (isApproaching(car, direction)) {
                 count++;
             }
         }
@@ -158,8 +170,8 @@ public class CarsManager {
     public boolean isIntersectionClear() {
         for (List<Car> list : routes.values()) {
             for (Car car : list) {
-                if (car.getX() < 405.0 && car.getX() + carSize > 295.0
-                        && car.getY() < 405.0 && car.getY() + carSize > 295.0) {
+                if (car.getX() < 405.0 && car.getX() + car.getCarSize() > 295.0
+                        && car.getY() < 405.0 && car.getY() + car.getCarSize() > 295.0) {
                     return false;
                 }
             }
